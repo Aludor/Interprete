@@ -1,0 +1,152 @@
+package CodigoFases;
+import java_cup.runtime.Symbol;
+import Herramientas.*;
+
+parser code {:
+    @Override
+    public void syntax_error(Symbol sy) {
+        Token t=(Token)sy.value;
+        done_parsing();
+        report_error("Error sintáctico" + sy.left,null);
+    }
+:}
+
+/*SIMBOLOS TERMINALES
+ DE PALABRAS RESERVADAS*/
+
+terminal INCLUIR;
+terminal CLASE;
+terminal ESCRIBIR;
+terminal FUNCION;
+terminal PARACADA;
+terminal RETORNAR;
+terminal CODIGO;
+terminal LEER;
+terminal VARIABLE;
+terminal PRINCIPAL;
+
+/*TIPO DATO*/
+terminal CADENA;
+terminal NUMERO;
+terminal NULO;
+
+/*LOGICOS*/
+terminal FALSO;
+terminal BOLEANO;
+terminal VERDADERO;
+
+/*CICLOS*/
+terminal HACER;
+terminal DESDE;
+terminal ITERAR;
+terminal MIENTRAS;
+terminal INCREMENTAR; 
+
+/*CONDICIONES*/
+terminal SI;
+terminal SINO;
+terminal ENTONCES;
+terminal ENCASO;
+
+/*OPERACIONES*/
+terminal Token SUMA;
+terminal Token RESTA;
+terminal Token MUL;
+terminal Token DIV;
+
+/*OPERADORES LOGICOS*/
+terminal MENORQ;  
+terminal MAYORQ;
+terminal IGUAL;
+
+/*SIMBOLOS*/
+terminal PUNTO;
+terminal PUNTOCOMA;
+terminal PARAB;  /*parentecis abierto*/
+terminal PARCE;  /*parentecis cerrado*/
+terminal DPUNTO;
+terminal COMILLA;
+
+/*OTROS*/
+terminal Token ID;
+terminal ENTERO; /*numero de retorno el fn principal */
+terminal TAB, DTAB;
+
+/*PRODUCCIONES NO TERMINAL*/
+non terminal Symbol GLOBAL;
+non terminal pr_CODIGOGLOBAL, pr_FINC, pr_CUERPOC;
+
+non terminal expr_INCLUIR, pr_INCLUIR, pr_DECLARACION_INCLUIR, pr_LIBRERIAS;
+non terminal pr_FUNCIONES, pr_CLASES, pr_CUERPO, pr_INICIOC, expr_METODOS;
+non terminal expr_FNPRINCIPAL, pr_LINEAS, expr_CLASES, expr_PROPIEDADES;
+
+/*partes fundamentales de fn o class*/
+non terminal expr_VARIABLES, pr_CODIGO, pr_INICIOF, pr_PROPIEDADES;
+non terminal expr_DECLARACIONVAR, pr_CUERPOF, pr_CLASE, expr_CODIGO;
+non terminal TIPODATO, pr_FINF, expr_RETORNAR;
+
+start with GLOBAL;
+
+/*PRODUCCION PRINCIPAL DE UN PROGRAMA*/
+GLOBAL ::=  pr_LIBRERIAS pr_FUNCIONES pr_CLASES pr_CODIGO
+        |   pr_LIBRERIAS pr_FUNCIONES pr_CODIGO
+        |   pr_LIBRERIAS pr_CODIGO
+        |   pr_CODIGO;
+
+pr_LIBRERIAS ::= INCLUIR COMILLA ID COMILLA pr_LIBRERIAS 
+               | INCLUIR COMILLA ID COMILLA;
+
+pr_FUNCIONES ::= pr_INICIOF pr_CUERPOF pr_FINF;
+
+pr_INICIOF ::= TIPODATO ID PARAB expr_VARIABLES PARCE
+            | TIPODATO ID PARAB PARCE;
+
+expr_VARIABLES ::= TIPODATO ID expr_VARIABLES
+                 | TIPODATO ID;
+
+pr_CUERPOF ::= pr_LINEAS pr_CUERPO
+             | pr_LINEAS;
+
+
+pr_FINF ::= RETORNAR expr_RETORNAR;
+
+expr_RETORNAR ::= ID:i SUMA ID:d  {:
+                                        Token operacion = new Token("menos", "+");
+                                        operacion.agregarHijos(i);
+                                        operacion.agregarHijos(d);
+                                        RESULT = operacion;
+                                  :}
+                | ID:i RESTA ID:d{:
+                                        Token operacion = new Token("menos", "-");
+                                        operacion.agregarHijos(i);
+                                        operacion.agregarHijos(d);
+                                        RESULT = operacion;
+                                  :}
+                | ID:i MUL ID:d   {:
+                                        Token operacion = new Token("menos", "*");
+                                        operacion.agregarHijos(i);
+                                        operacion.agregarHijos(d);
+                                        RESULT = operacion;
+                                  :}
+                | ID:i DIV ID:d   {:
+                                        Token operacion = new Token("menos", "/");
+                                        operacion.agregarHijos(i);
+                                        operacion.agregarHijos(d);
+                                        RESULT = operacion;
+                                  :}
+                | ID:i{:
+                                        Token operacion = new Token("menos", "identificador");
+                                        operacion.agregarHijos(i);
+                                        RESULT = operacion;
+                                  :};
+
+expr_CLASES ::= pr_INICIOC pr_CUERPOC pr_FINC;
+
+pr_INICIOC ::= CLASE ID;
+
+pr_CUERPOC ::= expr_PROPIEDADES expr_METODOS ;
+
+expr_PROPIEDADES ::= pr_PROPIEDADES expr_PROPIEDADES;
+
+TIPODATO ::= ENTERO | CADENA;
+
